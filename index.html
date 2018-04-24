@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Test</title>
+</head>
+<body>
+    <h1>Test</h1>
+
+    <div id="app">
+
+        <input type="text" v-model="msgbody" @keyup.enter="send">
+        <button type="button" @click="send">OK</button>
+
+        <pre>{{ json }}</pre>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/pouchdb@6.4.3/dist/pouchdb.min.js"></script>
+
+    <script>
+
+let db = new PouchDB('my_database');
+
+let app = new Vue({
+    el: '#app',
+    data: {
+        msgbody: '',
+        json: 'json here'
+    },
+    methods: {
+        send() {
+            let doc = {
+                _id: '1',
+                num: Math.random(),
+                msgbody: this.msgbody
+            }
+
+            db  .get('1')
+                .then( ({_rev}) => db.put({...doc, _rev}))
+                .then( this.change )
+        },
+        change() {
+            db  .allDocs({include_docs: true})
+                .then( docs => this.json = docs )
+        }
+    }
+})
+
+let remoteDb = new PouchDB(`http://admin:admin@${location.hostname}:5984/todos`);
+let opts = {
+    live: true,
+    retry: true
+}
+
+db.sync(remoteDb, opts)
+    .on('change', info => { console.log('CHANGE', info); app.change() } )
+    .on('paused', err => console.log(err?'BISECTED':'SLEEP', err))
+    .on('active', nothing => console.log('WOKE', nothing))
+    .on('denied', err => console.log('NO', err))
+    .on('error', err => console.log('DEAD', err));
+
+    </script>
+</body>
+</html>
