@@ -22,6 +22,8 @@
     <script>
 
 let db = new PouchDB('my_database');
+let remoteDb = new PouchDB(`http://admin:admin@${location.hostname}:5984/todos`);
+let sync = db.sync(remoteDb, { live: true, retry: true })
 
 let app = new Vue({
     el: '#app',
@@ -48,13 +50,6 @@ let app = new Vue({
     }
 })
 
-let remoteDb = new PouchDB(`http://admin:admin@${location.hostname}:5984/todos`);
-let opts = {
-    live: true,
-    retry: true
-}
-
-let sync = db.sync(remoteDb, opts)
 sync.on('change', info => console.log('CHANGE', info))
 sync.on('paused', err => {
     if (err) return console.log('BISECTED', err);
