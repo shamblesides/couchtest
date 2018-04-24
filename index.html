@@ -54,12 +54,15 @@ let opts = {
     retry: true
 }
 
-db.sync(remoteDb, opts)
-    .on('change', info => { console.log('CHANGE', info); app.change() } )
-    .on('paused', err => console.log(err?'BISECTED':'SLEEP', err))
-    .on('active', nothing => console.log('WOKE', nothing))
-    .on('denied', err => console.log('NO', err))
-    .on('error', err => console.log('DEAD', err));
+let sync = db.sync(remoteDb, opts)
+sync.on('change', info => console.log('CHANGE', info))
+sync.on('paused', err => {
+    if (err) return console.log('BISECTED', err);
+    app.change();
+})
+sync.on('active', nothing => console.log('WOKE', nothing))
+sync.on('denied', err => console.log('NO', err))
+sync.on('error', err => console.log('DEAD', err))
 
     </script>
 </body>
