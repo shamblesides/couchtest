@@ -56,7 +56,7 @@ sync.on('paused', err => {
     app.change();
     console.log('SLEEP')
 })
-sync.on('active', nothing => console.log('WOKE', nothing))
+sync.on('active', something => console.log('WOKE', something))
 sync.on('denied', err => console.log('NO', err))
 sync.on('error', err => console.log('DEAD', err))
 
