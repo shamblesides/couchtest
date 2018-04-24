@@ -54,6 +54,7 @@ sync.on('change', info => console.log('CHANGE', info))
 sync.on('paused', err => {
     if (err) return console.log('BISECTED', err);
     app.change();
+    console.log('SLEEP')
 })
 sync.on('active', nothing => console.log('WOKE', nothing))
 sync.on('denied', err => console.log('NO', err))
