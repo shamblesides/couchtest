@@ -5,9 +5,9 @@
     <title>Test</title>
 </head>
 <body>
-    <h1>Test</h1>
-
     <div id="app">
+        
+        <h1>Test is: {{ state }}</h1>
 
         <input type="text" v-model="msgbody" @keyup.enter="send">
         <button type="button" @click="send">OK</button>
@@ -23,13 +23,13 @@
 
 let db = new PouchDB('my_database');
 let remoteDb = new PouchDB(`http://admin:admin@${location.hostname}:5984/todos`);
-let sync = db.sync(remoteDb, { live: true, retry: true })
 
 let app = new Vue({
     el: '#app',
     data: {
         msgbody: '',
-        json: 'json here'
+        json: 'json here',
+        state: 'loading'
     },
     methods: {
         send() {
@@ -43,22 +43,31 @@ let app = new Vue({
                 .then( ({_rev}) => db.put({...doc, _rev}))
                 .then( this.change )
         },
-        change() {
+        update() {
             db  .allDocs({include_docs: true})
                 .then( docs => this.json = docs )
         }
     }
 })
 
-sync.on('change', info => console.log('CHANGE', info))
-sync.on('paused', err => {
-    if (err) return console.log('BISECTED', err);
-    app.change();
-    console.log('SLEEP')
-})
-sync.on('active', something => console.log('WOKE', something))
-sync.on('denied', err => console.log('NO', err))
-sync.on('error', err => console.log('DEAD', err))
+app.update()
+
+let sync;
+(function hello() {
+    sync = db.sync(remoteDb, { live: true })
+    sync.on('change', info => app.state = 'receiving!!!')
+    sync.on('paused', err => {
+        if (err) return app.state = 'BISECTED'
+        app.update();
+        app.state = 'Ready'
+    })
+    sync.on('active', something => app.state = 'awoken')
+    sync.on('denied', err => app.state = '__DENIED__')
+    sync.on('error', err => {
+        app.state = 'DEAD'
+        setTimeout(hello, 1000)
+    })
+})()
 
     </script>
 </body>
