@@ -18,17 +18,21 @@
 
     <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
     <script src="https://unpkg.com/pouchdb@6.4.3/dist/pouchdb.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
-    <script>
+    <script type="text/babel">
 
-let db = new PouchDB('my_database');
+// if it's safari, use the websql adapter, since the indexeddb one doesn't seem to work
+let adapter = navigator.userAgent.match(/Version\/[\d\.]+.*Safari/) ? 'websql' : undefined;
+
+let db = new PouchDB('my_database', { adapter });
 let remoteDb = new PouchDB(`http://admin:admin@${location.hostname}:5984/todos`);
 
 let app = new Vue({
     el: '#app',
     data: {
         msgbody: '',
-        json: 'json here',
+        json: 'loading...',
         state: 'loading'
     },
     methods: {
