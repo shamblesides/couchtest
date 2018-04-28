@@ -39,16 +39,15 @@ let app = new Vue({
         send() {
             let doc = {
                 _id: '1',
-                num: Math.random(),
+                // num: Math.random(),
                 msgbody: this.msgbody
             }
 
             db  .get('1')
                 .then( ({_rev}) => db.put({...doc, _rev}))
-                .then( this.change )
         },
         update() {
-            db  .allDocs({include_docs: true})
+            db  .allDocs({include_docs: true, conflicts: true})
                 .then( docs => this.json = docs )
         }
     }
